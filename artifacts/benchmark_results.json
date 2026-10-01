@@ -1,0 +1,114 @@
+{
+  "summary": {
+    "total": 6,
+    "passed": 1,
+    "pass_rate": 0.16666666666666666,
+    "avg_faithfulness": 0.7206349206349206,
+    "avg_relevance": 0.35215247715247716,
+    "avg_completeness": 0.6092047930283224,
+    "avg_context_recall": 0.8312013694366636,
+    "avg_context_precision": 0.9488425925925926,
+    "failure_types": {
+      "off_topic": 3,
+      "irrelevant": 2
+    }
+  },
+  "results": [
+    {
+      "id": "E01",
+      "difficulty": "easy",
+      "question": "How many USB-C ports does the NovaBook 14 have?",
+      "actual_answer": "The NovaBook 14 has two USB-C ports",
+      "faithfulness": 0.8571428571428571,
+      "relevance": 0.5555555555555556,
+      "completeness": 1.0,
+      "context_recall": 0.8571428571428571,
+      "context_precision": 1.0,
+      "overall": 0.8042328042328042,
+      "passed": true,
+      "failure_type": null
+    },
+    {
+      "id": "E02",
+      "difficulty": "easy",
+      "question": "Are weekends counted as business days for standard domestic shipping?",
+      "actual_answer": "\"Weekends and public carrier holidays are not business days.\")",
+      "faithfulness": 1.0,
+      "relevance": 0.42857142857142855,
+      "completeness": 0.7777777777777778,
+      "context_recall": 0.7777777777777778,
+      "context_precision": 1.0,
+      "overall": 0.7354497354497355,
+      "passed": false,
+      "failure_type": "off_topic"
+    },
+    {
+      "id": "E03",
+      "difficulty": "easy",
+      "question": "Is there a fee if I decline a quote for an out-of-warranty repair?",
+      "actual_answer": "Yes, if you decline the quote, a diagnostic",
+      "faithfulness": 0.3333333333333333,
+      "relevance": 0.3333333333333333,
+      "completeness": 0.3333333333333333,
+      "context_recall": 0.7777777777777778,
+      "context_precision": 0.8875,
+      "overall": 0.3333333333333333,
+      "passed": false,
+      "failure_type": "off_topic"
+    },
+    {
+      "id": "E04",
+      "difficulty": "easy",
+      "question": "Will OrbitTech support ever ask me for my password to help fix my account?",
+      "actual_answer": "No. OrbitTech staff will never request a password or one-time authentication code. Additionally, support tickets must not include passwords",
+      "faithfulness": 0.5555555555555556,
+      "relevance": 0.36363636363636365,
+      "completeness": 0.9166666666666666,
+      "context_recall": 0.8333333333333334,
+      "context_precision": 1.0,
+      "overall": 0.6119528619528619,
+      "passed": false,
+      "failure_type": "off_topic"
+    },
+    {
+      "id": "E05",
+      "difficulty": "easy",
+      "question": "Can I change the destination country of my shipping address after an order is confirmed?",
+      "actual_answer": "No. For security, changing the destination country is",
+      "faithfulness": 0.8,
+      "relevance": 0.18181818181818182,
+      "completeness": 0.3333333333333333,
+      "context_recall": 0.8,
+      "context_precision": 0.8055555555555555,
+      "overall": 0.4383838383838384,
+      "passed": false,
+      "failure_type": "irrelevant"
+    },
+    {
+      "id": "M01",
+      "difficulty": "medium",
+      "question": "I am an active OrbitPlus member. Does my membership give me 45 days to return an opened NovaBook 14?",
+      "actual_answer": "No. Your OrbitPlus membership does not extend the return window",
+      "faithfulness": 0.7777777777777778,
+      "relevance": 0.25,
+      "completeness": 0.29411764705882354,
+      "context_recall": 0.9411764705882353,
+      "context_precision": 1.0,
+      "overall": 0.4406318082788671,
+      "passed": false,
+      "failure_type": "irrelevant"
+    }
+  ],
+  "failure_analysis": {
+    "counts": {
+      "off_topic": 3,
+      "irrelevant": 2
+    },
+    "suggestions": [
+      "Increase chunk size in RAG pipeline to reduce context fragmentation",
+      "Add few-shot examples showing complete answers to improve completeness",
+      "Implement hallucination checker to filter unsupported claims"
+    ],
+    "improvement_log": "| Failure ID | Type | Root Cause | Suggested Fix | Status |\n|------------|------|------------|---------------|--------|\n| F001 | off_topic | Answer does not address the question — improve prompt clarity | Increase chunk size in RAG pipeline to reduce context fragmentation | Open |\n| F002 | off_topic | Context is missing or irrelevant — improve retrieval | Add few-shot examples showing complete answers to improve completeness | Open |\n| F003 | off_topic | Answer does not address the question — improve prompt clarity | Implement hallucination checker to filter unsupported claims | Open |\n| F004 | irrelevant | Answer does not address the question — improve prompt clarity | Review manually | Open |\n| F005 | irrelevant | Answer does not address the question — improve prompt clarity | Review manually | Open |"
+  }
+}

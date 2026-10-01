@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from dotenv import load_dotenv
-# from openai import OpenAI, OpenAIError
-# import google.generativeai as genai
-from groq import Groq, GroqError
+from openai import OpenAI, OpenAIError
+import google.generativeai as genai
+# from groq import Groq, GroqError
 
 load_dotenv(Path(__file__).resolve().with_name(".env"))
 
@@ -267,60 +267,60 @@ class TextGenerator(Protocol):
 #             raise RuntimeError("OpenAI returned an empty answer")
 #         return answer
 
-# class GeminiGenerator:
-#     def __init__(self, max_output_tokens: int = 300) -> None:
-#         api_key = os.getenv("GEMINI_API_KEY", "").strip()
-#         # Đặt model mặc định là gemini-1.5-flash nếu không có trong .env
-#         self.model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash").strip()
-#         if not api_key:
-#             raise RuntimeError("GEMINI_API_KEY is missing from .env")
-        
-#         # Cấu hình Gemini API key
-#         genai.configure(api_key=api_key)
-        
-#         # Khởi tạo model
-#         self.model = genai.GenerativeModel(self.model_name)
-#         self.max_output_tokens = max_output_tokens
-
-#     def generate(self, prompt: str) -> str:
-#         # Cấu hình tham số sinh văn bản (ví dụ: temperature)
-#         generation_config = genai.types.GenerationConfig(
-#             max_output_tokens=self.max_output_tokens,
-#             temperature=0,
-#         )
-        
-#         try:
-#             response = self.model.generate_content(
-#                 prompt,
-#                 generation_config=generation_config
-#             )
-#             answer = response.text.strip()
-#             if not answer:
-#                 raise RuntimeError("Gemini returned an empty answer")
-#             return answer
-#         except Exception as e:
-#             raise RuntimeError(f"Gemini API error: {e}")
-
-class GroqGenerator:
+class GeminiGenerator:
     def __init__(self, max_output_tokens: int = 300) -> None:
-        api_key = os.getenv("GROQ_API_KEY", "").strip()
-        self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        # Đặt tên model dạng chuỗi vào self.model để tránh lỗi JSON serialization
+        self.model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash").strip()
         if not api_key:
-            raise RuntimeError("GROQ_API_KEY is missing from .env")
-        self.client = Groq(api_key=api_key)
+            raise RuntimeError("GEMINI_API_KEY is missing from .env")
+        
+        # Cấu hình Gemini API key
+        genai.configure(api_key=api_key)
+        
+        # Khởi tạo instance của model vào thuộc tính ẩn _model
+        self._model = genai.GenerativeModel(self.model)
         self.max_output_tokens = max_output_tokens
 
     def generate(self, prompt: str) -> str:
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=self.max_output_tokens,
             temperature=0,
-            max_tokens=self.max_output_tokens,
         )
-        answer = response.choices[0].message.content.strip()
-        if not answer:
-            raise RuntimeError("Groq returned an empty answer")
-        return answer
+        
+        try:
+            # Gọi generate_content từ self._model
+            response = self._model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
+            answer = response.text.strip()
+            if not answer:
+                raise RuntimeError("Gemini returned an empty answer")
+            return answer
+        except Exception as e:
+            raise RuntimeError(f"Gemini API error: {e}")
+
+# class GroqGenerator:
+#     def __init__(self, max_output_tokens: int = 300) -> None:
+#         api_key = os.getenv("GROQ_API_KEY", "").strip()
+#         self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
+#         if not api_key:
+#             raise RuntimeError("GROQ_API_KEY is missing from .env")
+#         self.client = Groq(api_key=api_key)
+#         self.max_output_tokens = max_output_tokens
+
+#     def generate(self, prompt: str) -> str:
+#         response = self.client.chat.completions.create(
+#             model=self.model,
+#             messages=[{"role": "user", "content": prompt}],
+#             temperature=0,
+#             max_tokens=self.max_output_tokens,
+#         )
+#         answer = response.choices[0].message.content.strip()
+#         if not answer:
+#             raise RuntimeError("Groq returned an empty answer")
+#         return answer
 
 @dataclass(frozen=True)
 class DomainResponse:
@@ -355,7 +355,7 @@ class DomainAssistant:
         return cls(
             corpus_id,
             BM25Retriever(chunks),
-            generator if generator is not None else GroqGenerator(),
+            generator if generator is not None else GeminiGenerator(),
             top_k,
         )
 
@@ -446,7 +446,7 @@ def generate_actual_answers(
     dataset_file = Path(dataset_path).expanduser().resolve()
     notify(f"Loading golden questions: {dataset_file}")
     dataset_corpus_id, questions = _load_questions(dataset_file)
-    questions = questions[:10]
+    questions = questions[:6]
     notify(f"Loading and indexing corpus: {Path(corpus_dir).expanduser().resolve()}")
     assistant = DomainAssistant.from_corpus(corpus_dir, generator, top_k)
     if assistant.corpus_id != dataset_corpus_id:
@@ -565,7 +565,7 @@ def main() -> int:
             json.dumps(artifact, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-    except (OSError, GroqError, TypeError, ValueError, RuntimeError) as exc:
+    except (OSError, OpenAIError, TypeError, ValueError, RuntimeError) as exc:
         print(f"ERROR: {exc}")
         return 2
     print(f"Generated {len(artifact['answers'])} actual answers: {output}")
